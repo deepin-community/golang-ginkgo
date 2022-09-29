@@ -1,0 +1,20 @@
+Source: golang-ginkgo
+Section: devel
+Priority: extra
+Maintainer: Debian Go Packaging Team <pkg-go-maintainers@lists.alioth.debian.org>
+Uploaders: Martín Ferrari <tincho@debian.org>
+Build-Depends: debhelper (>= 9.0.0), dh-golang (>= 1.17~), golang-any,
+               golang-gomega-dev,
+Standards-Version: 3.9.8
+Vcs-Git: https://anonscm.debian.org/git/pkg-go/packages/golang-ginkgo.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-go/packages/golang-ginkgo.git/
+Homepage: https://github.com/onsi/ginkgo
+XS-Go-Import-Path: github.com/onsi/ginkgo
+
+Package: golang-ginkgo-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, golang-gomega-dev
+Description: BDD Testing Framework for Go
+ Ginkgo is a BDD-style Golang testing framework built to help you efficiently
+ write expressive and comprehensive tests. It is best paired with the Gomega
+ matcher library but is designed to be matcher-agnostic.

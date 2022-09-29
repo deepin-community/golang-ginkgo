@@ -1,0 +1,2 @@
+# The Go compiler is currently unable to produce read-only relocations
+golang-ginkgo-dev: hardening-no-relro usr/bin/ginkgo

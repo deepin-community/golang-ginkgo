@@ -1,0 +1,73 @@
+.\" Hey, EMACS: -*- nroff -*-
+.TH GINKGO "1" "Feb 2015" "ginkgo"
+.SH NAME
+ginkgo \- The ginkgo CLI
+compiler
+.SH SYNOPSIS
+.TP
+.B ginkgo
+\fIflags\fR \fIpackages\fR -- \fIpass-throughs\fR
+.TP
+.B ginkgo
+\fICOMMAND\fR
+\fIoptions\fR
+
+.SH DESCRIPTION
+.PP
+Ginkgo is a BDD-style Golang testing framework built to help you efficiently
+write expressive and comprehensive tests.
+
+This page documents the
+.B ginkgo
+CLI, which offers a number of conveniences beyond what \fBgo test\fR provides out
+of the box and its usage is recommended, but not necessary.
+
+.SH OPTIONS
+.TP 4
+\fBginkgo\fR \fIflags\fR \fIpackages\fR -- \fIpass-throughs\fR
+Run the tests in \fIpackages\fR (or the package in the current directory).
+
+Any arguments after \fB--\fR will be passed to the test.
+Run \fBginkgo test\fR for a description of all valid flags.
+
+.TP 4
+\fBginkgo\fR watch \fIflags\fR \fIpackages\fR -- \fIpass-throughs\fR
+Watches the files in  \fIpackages\fR and re-runs tests when changes occur.
+
+Any arguments after \fB--\fR will be passed to the test.
+Accepts all the flags that the \fBginkgo\fR command accepts except for
+\fB--keepGoing\fR and \fB--untilItFails\fR.
+
+.TP 4
+\fBginkgo\fR bootstrap \fIflags\fR
+Bootstrap a test suite for the current package
+
+.TP 4
+\fBginkgo\fR generate \fIfilenames\fR
+Generate a test file named \fIfilename\fR_test.go
+
+If the optional \fIfilenames\fR argument is omitted, a file named after the
+package in the current directory will be created.
+
+.TP 4
+\fBginkgo\fR nodot
+Update the nodot declarations in your test suite
+
+Any missing declarations (from, say, a recently added matcher) will be added to
+your bootstrap file.
+If you've renamed a declaration, that name will be honored and not overwritten.
+
+.TP 4
+\fBginkgo\fR convert \fI/path/to/package\fR
+Convert the package at the specified path from an XUnit-style test to a
+Ginkgo-style test
+
+.TP 4
+\fBginkgo\fR unfocus
+Recursively unfocuses any focused tests under the current directory
+
+.SH AUTHOR
+.B ginkgo
+was written by Onsi Fakhouri.
+
+This man page was written by Martín Ferrari for the Debian project.

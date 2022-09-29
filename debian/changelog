@@ -1,0 +1,62 @@
+golang-ginkgo (1.2.0+git20161006.acfa16a-1) UNRELEASED; urgency=medium
+
+  * update
+
+ -- Debian Go Packaging Team <pkg-go-maintainers@lists.alioth.debian.org>  Wed, 27 Apr 2022 11:28:19 +0800
+
+golang-ginkgo (1.2.0+git20161006.acfa16a-1) unstable; urgency=medium
+
+  * New upstream snapshot that fixes build issues in gccgo.
+
+ -- Martín Ferrari <tincho@debian.org>  Fri, 07 Oct 2016 13:35:04 +0200
+
+golang-ginkgo (1.2.0+git20160914.46c87bb-1) unstable; urgency=medium
+
+  [ Paul Tagliamonte ]
+  * Team upload.
+  * Use a secure transport for the Vcs-Git and Vcs-Browser URL
+
+  [ Martín Ferrari ]
+  * Upstream has communicated that they won't be making releases unless there
+    is a breaking change. Making a new release out of a git snapshot.
+  * Remove now unneeded patches (addressed upstream).
+  * Packaging refresh:
+    - Updated Standards-Version (no changes).
+    - Use new dh-golang features.
+    - Use golang-any.
+    - Remove Built-Using.
+
+ -- Martín Ferrari <tincho@debian.org>  Mon, 26 Sep 2016 15:44:25 +0000
+
+golang-ginkgo (1.2.0-3) unstable; urgency=medium
+
+  * Reduce flakiness in timing-related test. Closes: #819214.
+
+ -- Martín Ferrari <tincho@debian.org>  Sat, 02 Apr 2016 15:04:54 +0000
+
+golang-ginkgo (1.2.0-2) unstable; urgency=medium
+
+  * Provide compatibility patch for arm64. Closes: #803099
+  * Update Standards-Version with no changes.
+
+ -- Martín Ferrari <tincho@debian.org>  Sun, 13 Mar 2016 15:08:00 +0000
+
+golang-ginkgo (1.2.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Migration to pkg-go team.
+  * Added lintian override.
+
+ -- Martín Ferrari <tincho@debian.org>  Tue, 07 Jul 2015 06:46:08 +0000
+
+golang-ginkgo (1.1.1-1) unstable; urgency=medium
+
+  * New upstream release. (Closes: #784623)
+
+ -- Martín Ferrari <tincho@debian.org>  Thu, 07 May 2015 19:10:28 +0000
+
+golang-ginkgo (1.1.0-1) unstable; urgency=medium
+
+  * Initial release. (Closes: #778516)
+
+ -- Martín Ferrari <tincho@debian.org>  Mon, 16 Feb 2015 06:55:36 +0000

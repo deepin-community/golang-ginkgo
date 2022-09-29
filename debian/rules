@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+# The integration tests seem to choke on dh-golang tricks.
+export DH_GOLANG_EXCLUDES := github.com/onsi/ginkgo/integration
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+DEBVERS    ?= $(shell dpkg-parsechangelog -SVersion)
+VERSION    ?= $(shell echo '$(DEBVERS)' | sed 's/^[[:digit:]]*://; s/[-].*//')
+DEBPKGNAME ?= $(shell dpkg-parsechangelog -SSource)
+
+gen-orig-tgz:
+	if [ ! -f ../$(DEBPKGNAME)_$(VERSION).orig.tar.gz ] ; then \
+	    git archive --format=tar.gz --prefix=$(DEBPKGNAME)-$(VERSION)/ \
+		upstream/$(VERSION) >../$(DEBPKGNAME)_$(VERSION).orig.tar.gz; \
+	fi
