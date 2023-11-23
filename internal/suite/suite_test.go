@@ -40,7 +40,7 @@ var _ = Describe("Suite", func() {
 			runOrder             []string
 			randomizeAllSpecs    bool
 			randomSeed           int64
-			focusString          string
+			focusStrings         []string
 			parallelNode         int
 			parallelTotal        int
 			runResult            bool
@@ -58,7 +58,7 @@ var _ = Describe("Suite", func() {
 			randomSeed = 11
 			parallelNode = 1
 			parallelTotal = 1
-			focusString = ""
+			focusStrings = []string{}
 
 			runOrder = make([]string, 0)
 			specSuite.SetBeforeSuiteNode(f("BeforeSuite"), codelocation.New(0), 0)
@@ -91,14 +91,14 @@ var _ = Describe("Suite", func() {
 			runResult, hasProgrammaticFocus = specSuite.Run(fakeT, "suite description", []reporters.Reporter{fakeR}, writer, config.GinkgoConfigType{
 				RandomSeed:        randomSeed,
 				RandomizeAllSpecs: randomizeAllSpecs,
-				FocusString:       focusString,
+				FocusStrings:      focusStrings,
 				ParallelNode:      parallelNode,
 				ParallelTotal:     parallelTotal,
 			})
 		})
 
 		It("provides the config and suite description to the reporter", func() {
-			Ω(fakeR.Config.RandomSeed).Should(Equal(int64(randomSeed)))
+			Ω(fakeR.Config.RandomSeed).Should(Equal(randomSeed))
 			Ω(fakeR.Config.RandomizeAllSpecs).Should(Equal(randomizeAllSpecs))
 			Ω(fakeR.BeginSummary.SuiteDescription).Should(Equal("suite description"))
 		})
@@ -121,6 +121,7 @@ var _ = Describe("Suite", func() {
 			Ω(description.LineNumber).Should(BeNumerically(">", 50))
 			Ω(description.LineNumber).Should(BeNumerically("<", 150))
 			Ω(description.Failed).Should(BeFalse())
+			Ω(description.Duration).Should(BeNumerically(">", 0))
 		})
 
 		Measure("should run measurements", func(b Benchmarker) {
@@ -152,6 +153,19 @@ var _ = Describe("Suite", func() {
 				"AfterSuite",
 			}))
 		})
+		Context("when in an AfterEach block", func() {
+			AfterEach(func() {
+				description := CurrentGinkgoTestDescription()
+				Ω(description.IsMeasurement).Should(BeFalse())
+				Ω(description.FileName).Should(ContainSubstring("suite_test.go"))
+				Ω(description.Failed).Should(BeFalse())
+				Ω(description.Duration).Should(BeNumerically(">", 0))
+			})
+
+			It("still provides information about the current test", func() {
+				Ω(true).To(BeTrue())
+			})
+		})
 
 		Context("when told to randomize all specs", func() {
 			BeforeEach(func() {
@@ -170,46 +184,9 @@ var _ = Describe("Suite", func() {
 			})
 		})
 
-		Describe("with ginkgo.parallel.total > 1", func() {
-			BeforeEach(func() {
-				parallelTotal = 2
-				randomizeAllSpecs = true
-			})
-
-			Context("for one worker", func() {
-				BeforeEach(func() {
-					parallelNode = 1
-				})
-
-				It("should run a subset of tests", func() {
-					Ω(runOrder).Should(Equal([]string{
-						"BeforeSuite",
-						"top BE", "top JBE", "top IT", "top AE",
-						"top BE", "BE", "top JBE", "JBE", "inner IT", "AE", "top AE",
-						"AfterSuite",
-					}))
-				})
-			})
-
-			Context("for another worker", func() {
-				BeforeEach(func() {
-					parallelNode = 2
-				})
-
-				It("should run a (different) subset of tests", func() {
-					Ω(runOrder).Should(Equal([]string{
-						"BeforeSuite",
-						"top BE", "BE", "top JBE", "JBE", "IT", "AE", "top AE",
-						"top BE", "BE 2", "top JBE", "IT 2", "top AE",
-						"AfterSuite",
-					}))
-				})
-			})
-		})
-
 		Context("when provided with a filter", func() {
 			BeforeEach(func() {
-				focusString = `inner|\d`
+				focusStrings = []string{`inner`, `\d`}
 			})
 
 			It("converts the filter to a regular expression and uses it to filter the running specs", func() {

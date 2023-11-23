@@ -1,0 +1,21 @@
+From: Shengjing Zhu <zhsj@debian.org>
+Date: Fri, 7 Feb 2020 23:29:11 +0800
+Subject: Increase default test timeout to 30m
+
+---
+ integration/integration_suite_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/integration/integration_suite_test.go b/integration/integration_suite_test.go
+index e4d8b44..31d666b 100644
+--- a/integration/integration_suite_test.go
++++ b/integration/integration_suite_test.go
+@@ -21,7 +21,7 @@ var tmpDir string
+ var pathToGinkgo string
+ 
+ func TestIntegration(t *testing.T) {
+-	SetDefaultEventuallyTimeout(30 * time.Second)
++	SetDefaultEventuallyTimeout(30 * time.Minute)
+ 	RegisterFailHandler(Fail)
+ 	RunSpecs(t, "Integration Suite")
+ }

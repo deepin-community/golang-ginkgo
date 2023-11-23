@@ -1,0 +1,22 @@
+From: Shengjing Zhu <zhsj@debian.org>
+Date: Sat, 20 Aug 2022 05:31:02 +0800
+Subject: Disable deprecation warning
+
+Forwarded: not-needed
+---
+ types/deprecation_support.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/types/deprecation_support.go b/types/deprecation_support.go
+index d5a6658..f057f85 100644
+--- a/types/deprecation_support.go
++++ b/types/deprecation_support.go
+@@ -103,7 +103,7 @@ func (d *DeprecationTracker) TrackDeprecation(deprecation Deprecation, cl ...Cod
+ }
+ 
+ func (d *DeprecationTracker) DidTrackDeprecations() bool {
+-	return len(d.deprecations) > 0
++	return false
+ }
+ 
+ func (d *DeprecationTracker) DeprecationsReport() string {

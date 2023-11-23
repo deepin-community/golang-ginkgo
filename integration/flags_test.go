@@ -17,7 +17,7 @@ var _ = Describe("Flags Specs", func() {
 
 	BeforeEach(func() {
 		pathToTest = tmpPath("flags")
-		copyIn("flags_tests", pathToTest)
+		copyIn(fixturePath("flags_tests"), pathToTest, false)
 	})
 
 	getRandomOrders := func(output string) []int {
@@ -63,6 +63,11 @@ var _ = Describe("Flags Specs", func() {
 		Eventually(session).Should(gexec.Exit(1))
 	})
 
+	It("should fail if the test suite takes longer than the timeout", func() {
+		session := startGinkgo(pathToTest, "--noColor", "--timeout=1ms")
+		Eventually(session).Should(gexec.Exit(1))
+	})
+
 	It("should not print out pendings when --noisyPendings=false", func() {
 		session := startGinkgo(pathToTest, "--noColor", "--noisyPendings=false")
 		Eventually(session).Should(gexec.Exit(types.GINKGO_FOCUS_EXIT_CODE))
@@ -100,7 +105,32 @@ var _ = Describe("Flags Specs", func() {
 		Ω(output).Should(ContainSubstring("3 Skipped"))
 	})
 
+	It("should override the programmatic focus when told to skip (multiple options)", func() {
+		session := startGinkgo(pathToTest, "--noColor", "--skip=marshmallow", "--skip=failing", "--skip=flaky")
+		Eventually(session).Should(gexec.Exit(0))
+		output := string(session.Out.Contents())
+
+		Ω(output).ShouldNot(ContainSubstring("marshmallow"))
+		Ω(output).Should(ContainSubstring("chocolate"))
+		Ω(output).Should(ContainSubstring("smores"))
+		Ω(output).Should(ContainSubstring("11 Passed"))
+		Ω(output).Should(ContainSubstring("0 Failed"))
+		Ω(output).Should(ContainSubstring("1 Pending"))
+		Ω(output).Should(ContainSubstring("3 Skipped"))
+	})
+
+	It("should ignore empty skip and focus variables", func() {
+		session := startGinkgo(pathToTest, "--noColor", "--skip=", "--focus=")
+		Eventually(session).Should(gexec.Exit(types.GINKGO_FOCUS_EXIT_CODE))
+		output := string(session.Out.Contents())
+		Ω(output).Should(ContainSubstring("marshmallow"))
+		Ω(output).Should(ContainSubstring("chocolate"))
+	})
+
 	It("should run the race detector when told to", func() {
+		if !raceDetectorSupported() {
+			Skip("race detection is not supported")
+		}
 		session := startGinkgo(pathToTest, "--noColor", "--race")
 		Eventually(session).Should(gexec.Exit(types.GINKGO_FOCUS_EXIT_CODE))
 		output := string(session.Out.Contents())
@@ -153,13 +183,13 @@ var _ = Describe("Flags Specs", func() {
 
 	It("should fail fast when told to", func() {
 		pathToTest = tmpPath("fail")
-		copyIn("fail_fixture", pathToTest)
+		copyIn(fixturePath("fail_fixture"), pathToTest, false)
 		session := startGinkgo(pathToTest, "--failFast")
 		Eventually(session).Should(gexec.Exit(1))
 		output := string(session.Out.Contents())
 
 		Ω(output).Should(ContainSubstring("1 Failed"))
-		Ω(output).Should(ContainSubstring("15 Skipped"))
+		Ω(output).Should(ContainSubstring("18 Skipped"))
 	})
 
 	Context("with a flaky test", func() {
@@ -176,20 +206,20 @@ var _ = Describe("Flags Specs", func() {
 
 	It("should perform a dry run when told to", func() {
 		pathToTest = tmpPath("fail")
-		copyIn("fail_fixture", pathToTest)
+		copyIn(fixturePath("fail_fixture"), pathToTest, false)
 		session := startGinkgo(pathToTest, "--dryRun", "-v")
 		Eventually(session).Should(gexec.Exit(0))
 		output := string(session.Out.Contents())
 
 		Ω(output).Should(ContainSubstring("synchronous failures"))
-		Ω(output).Should(ContainSubstring("16 Specs"))
+		Ω(output).Should(ContainSubstring("19 Specs"))
 		Ω(output).Should(ContainSubstring("0 Passed"))
 		Ω(output).Should(ContainSubstring("0 Failed"))
 	})
 
 	regextest := func(regexOption string, skipOrFocus string) string {
 		pathToTest = tmpPath("passing")
-		copyIn("passing_ginkgo_tests", pathToTest)
+		copyIn(fixturePath("passing_ginkgo_tests"), pathToTest, false)
 		session := startGinkgo(pathToTest, regexOption, "--dryRun", "-v", skipOrFocus)
 		Eventually(session).Should(gexec.Exit(0))
 		return string(session.Out.Contents())
@@ -208,6 +238,7 @@ var _ = Describe("Flags Specs", func() {
 		output = regextest("-regexScansFilePath=false", "-focus=/passing/") // nothing gets focused (nothing runs)
 		Ω(output).Should(ContainSubstring("0 of 4 Specs"))
 	})
+
 	It("should honor compiler flags", func() {
 		session := startGinkgo(pathToTest, "-gcflags=-importmap 'math=math/cmplx'")
 		Eventually(session).Should(gexec.Exit(types.GINKGO_FOCUS_EXIT_CODE))

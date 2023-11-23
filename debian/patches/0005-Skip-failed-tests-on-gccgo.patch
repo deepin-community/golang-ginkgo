@@ -1,0 +1,76 @@
+From: Shengjing Zhu <zhsj@debian.org>
+Date: Sat, 8 Feb 2020 19:10:37 +0800
+Subject: Skip failed tests on gccgo
+
+---
+ integration/coverage_test.go                |  2 ++
+ integration/flags_test.go                   | 10 ++++++++++
+ internal/codelocation/code_location_test.go |  3 +++
+ 3 files changed, 15 insertions(+)
+
+diff --git a/integration/coverage_test.go b/integration/coverage_test.go
+index 962538c..3ae9efb 100644
+--- a/integration/coverage_test.go
++++ b/integration/coverage_test.go
+@@ -1,3 +1,5 @@
++// +build gc
++
+ package integration_test
+ 
+ import (
+diff --git a/integration/flags_test.go b/integration/flags_test.go
+index fb7b38a..aa78a70 100644
+--- a/integration/flags_test.go
++++ b/integration/flags_test.go
+@@ -4,6 +4,7 @@ import (
+ 	"io/ioutil"
+ 	"os"
+ 	"path/filepath"
++	"runtime"
+ 	"strings"
+ 
+ 	. "github.com/onsi/ginkgo"
+@@ -49,6 +50,9 @@ var _ = Describe("Flags Specs", func() {
+ 	})
+ 
+ 	It("should run a coverprofile when passed -cover", func() {
++		if runtime.Compiler != "gc" {
++			Skip("Only work on gc compiler")
++		}
+ 		session := startGinkgo(pathToTest, "--noColor", "--cover", "--focus=the focused set")
+ 		Eventually(session).Should(gexec.Exit(0))
+ 		output := string(session.Out.Contents())
+@@ -240,6 +244,9 @@ var _ = Describe("Flags Specs", func() {
+ 	})
+ 
+ 	It("should honor compiler flags", func() {
++		if runtime.Compiler != "gc" {
++			Skip("Only work on gc compiler")
++		}
+ 		session := startGinkgo(pathToTest, "-gcflags=-importmap 'math=math/cmplx'")
+ 		Eventually(session).Should(gexec.Exit(types.GINKGO_FOCUS_EXIT_CODE))
+ 		output := string(session.Out.Contents())
+@@ -247,6 +254,9 @@ var _ = Describe("Flags Specs", func() {
+ 	})
+ 
+ 	It("should honor covermode flag", func() {
++		if runtime.Compiler != "gc" {
++			Skip("Only work on gc compiler")
++		}
+ 		session := startGinkgo(pathToTest, "--noColor", "--covermode=count", "--focus=the focused set")
+ 		Eventually(session).Should(gexec.Exit(0))
+ 		output := string(session.Out.Contents())
+diff --git a/internal/codelocation/code_location_test.go b/internal/codelocation/code_location_test.go
+index 850d0d2..a314871 100644
+--- a/internal/codelocation/code_location_test.go
++++ b/internal/codelocation/code_location_test.go
+@@ -82,6 +82,9 @@ TestFoo: RunSpecs(t, "Foo Suite")
+ 		})
+ 
+ 		It("should skip correctly for a Go runtime stack", func() {
++			if runtime.Compiler != "gc" {
++				Skip("only work on gc compiler")
++			}
+ 			// Actual string from debug.Stack(), something like:
+ 			// "goroutine 5 [running]:",
+ 			// "runtime/debug.Stack(0x0, 0x0, 0x0)",

@@ -1,0 +1,8 @@
+0001-Increase-default-test-timeout-to-30m.patch
+0002-Disable-deprecation-warning.patch
+0003-Disable-sprig-template-function.patch
+0004-Skip-failed-tests-without-Go-module.patch
+0005-Skip-failed-tests-on-gccgo.patch
+0006-Skip-failed-test-on-mips64le-and-riscv64.patch
+0007-Skip-failed-test-on-go1.19.patch
+0008-Skip-failed-test-on-go1.20.patch
