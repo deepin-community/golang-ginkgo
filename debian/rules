@@ -1,19 +1,14 @@
 #!/usr/bin/make -f
 
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
-# The integration tests seem to choke on dh-golang tricks.
-export DH_GOLANG_EXCLUDES := github.com/onsi/ginkgo/integration
+export DH_GOLANG_INSTALL_EXTRA := integration/_fixtures ginkgo/outline/_testdata
 
 %:
-	dh $@ --buildsystem=golang --with=golang
+	dh $@ --buildsystem=golang --with=golang --builddir=build
 
-DEBVERS    ?= $(shell dpkg-parsechangelog -SVersion)
-VERSION    ?= $(shell echo '$(DEBVERS)' | sed 's/^[[:digit:]]*://; s/[-].*//')
-DEBPKGNAME ?= $(shell dpkg-parsechangelog -SSource)
+override_dh_auto_test:
+	dh_auto_test -- -timeout=1h
 
-gen-orig-tgz:
-	if [ ! -f ../$(DEBPKGNAME)_$(VERSION).orig.tar.gz ] ; then \
-	    git archive --format=tar.gz --prefix=$(DEBPKGNAME)-$(VERSION)/ \
-		upstream/$(VERSION) >../$(DEBPKGNAME)_$(VERSION).orig.tar.gz; \
-	fi
+override_dh_auto_install:
+	dh_auto_install -- --no-binaries

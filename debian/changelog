@@ -1,14 +1,158 @@
-golang-ginkgo (1.2.0+git20161006.acfa16a-1) UNRELEASED; urgency=medium
+golang-ginkgo (1.16.5-5) unstable; urgency=medium
 
-  * update
+  * debian/control: Provide golang-ginkgo-dev, since many packages still
+    (build-)depend on it. Closes: #1053295
 
- -- Debian Go Packaging Team <pkg-go-maintainers@lists.alioth.debian.org>  Wed, 27 Apr 2022 11:28:19 +0800
+ -- Martina Ferrari <tina@debian.org>  Mon, 02 Oct 2023 17:11:16 +0000
+
+golang-ginkgo (1.16.5-4) unstable; urgency=medium
+
+  * Update my name and address.
+  * Stop building `gingko` binary package. Closes: #1052080
+  * debian/control: remove now unneeded golang-ginkgo-dev transitional
+    package. Closes: #1038324
+  * debian/control: Remove versioned dependency on dh-golang.
+  * debian/changelog: Update copyright years, s/MIT/Expat/.
+
+ -- Martina Ferrari <tina@debian.org>  Mon, 25 Sep 2023 20:03:38 +0000
+
+golang-ginkgo (1.16.5-3) unstable; urgency=medium
+
+  * Team upload
+  * Add Multi-Arch hint to transitional package as well
+  * Use golang-github-nxadm-tail-dev in dependency.
+    Drop the patch to use influxdata/tail.
+
+ -- Shengjing Zhu <zhsj@debian.org>  Sun, 26 Feb 2023 21:24:28 +0800
+
+golang-ginkgo (1.16.5-2) unstable; urgency=medium
+
+  * Team upload
+  * Update Standards-Version to 4.6.2 (no changes)
+  * Add Multi-Arch
+  * Refresh patches
+    + Add 0009-Skip-failed-test-on-go1.20.patch
+
+ -- Shengjing Zhu <zhsj@debian.org>  Thu, 09 Feb 2023 16:21:36 +0800
+
+golang-ginkgo (1.16.5-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream release 1.16.5
+  * Only track v1 release in uscan watch file
+  * Skip failed test on go1.19 (Closes: #1017272)
+  * Update Standards-Version to 4.6.1 (no changes)
+  * Update Section to golang
+  * Bump debhelper-compat to 13
+  * Disable deprecation warning
+  * Add golang-golang-x-tools-dev to Build-Depends
+  * Add patch to remove slim-sprig dependency
+  * Install extra testdata
+
+ -- Shengjing Zhu <zhsj@debian.org>  Sat, 20 Aug 2022 05:32:09 +0800
+
+golang-ginkgo (1.14.2-1) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Debian Janitor ]
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository,
+    Repository-Browse.
+
+  [ Roger Shimizu ]
+  * New upstream release 1.14.2
+  * debian/patches:
+    - Refresh patches.
+    - Add patch 0006 to import golang-github-influxdata-tail-dev
+      instead of golang-github-hpcloud-tail-dev
+  * debian/control:
+    - Replace B-D golang-github-hpcloud-tail-dev with
+      golang-github-influxdata-tail-dev.
+  * debian/watch:
+    - Update watch to match filename in archive.
+
+ -- Roger Shimizu <rosh@debian.org>  Sun, 22 Nov 2020 21:00:04 +0900
+
+golang-ginkgo (1.12.0-7) unstable; urgency=medium
+
+  * Team upload.
+  * Upload to sid.
+
+ -- Shengjing Zhu <zhsj@debian.org>  Thu, 13 Feb 2020 23:43:55 +0800
+
+golang-ginkgo (1.12.0-6) experimental; urgency=medium
+
+  * Team upload.
+  * Fix missing copyright info
+
+ -- Shengjing Zhu <zhsj@debian.org>  Sun, 09 Feb 2020 03:49:54 +0800
+
+golang-ginkgo (1.12.0-5) experimental; urgency=medium
+
+  * Team upload.
+  * Split ginkgo binary from dev packages
+    + Add a ginkgo package
+    + Rename golang-ginkgo-dev to golang-github-onsi-ginkgo-dev
+
+ -- Shengjing Zhu <zhsj@debian.org>  Sun, 09 Feb 2020 01:03:34 +0800
+
+golang-ginkgo (1.12.0-4) unstable; urgency=medium
+
+  * Team upload.
+  * Add patch to skip failed test on mips64le, riscv64, ppc64
+
+ -- Shengjing Zhu <zhsj@debian.org>  Sat, 08 Feb 2020 19:54:37 +0800
+
+golang-ginkgo (1.12.0-3) unstable; urgency=medium
+
+  * Team upload.
+  * Increase test timeout in go args as well
+
+ -- Shengjing Zhu <zhsj@debian.org>  Sat, 08 Feb 2020 01:42:20 +0800
+
+golang-ginkgo (1.12.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Add patch to only run race detector on supported arch
+  * Add patch to increase default test timeout
+
+ -- Shengjing Zhu <zhsj@debian.org>  Fri, 07 Feb 2020 23:31:14 +0800
+
+golang-ginkgo (1.12.0-1) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Martina Ferrari ]
+  * Disable color output, so build logs are readable.
+  * Reenable almost all tests, using a custom test command.
+  * Disable debian/watch, as upstream is not doing releases any more.
+
+  [ Alexandre Viau ]
+  * Point Vcs-* urls to salsa.debian.org.
+
+  [ Shengjing Zhu ]
+  * New upstream release
+    Support riscv64 (Closes: #950844)
+  * Update maintainer address to team+pkg-go@tracker.debian.org
+  * Update Priority to optional
+  * Update Standards-Version to 4.5.0 (no changes)
+  * Add Rules-Requires-Root
+  * Add autopkgtest-pkg-go
+  * Update debhelper-compat to 12
+  * Add golang-{github-hpcloud-tail,golang-x-sys}-dev to {Build-,}Depends
+  * Add uscan watch again
+  * Skip go module test
+  * Remove unused debian/source/local-options
+  * Remove unused lintian-overrides
+  * Change copyright format url to https
+
+ -- Shengjing Zhu <zhsj@debian.org>  Fri, 07 Feb 2020 20:06:45 +0800
 
 golang-ginkgo (1.2.0+git20161006.acfa16a-1) unstable; urgency=medium
 
   * New upstream snapshot that fixes build issues in gccgo.
 
- -- Martín Ferrari <tincho@debian.org>  Fri, 07 Oct 2016 13:35:04 +0200
+ -- Martina Ferrari <tina@debian.org>  Fri, 07 Oct 2016 13:35:04 +0200
 
 golang-ginkgo (1.2.0+git20160914.46c87bb-1) unstable; urgency=medium
 
@@ -16,7 +160,7 @@ golang-ginkgo (1.2.0+git20160914.46c87bb-1) unstable; urgency=medium
   * Team upload.
   * Use a secure transport for the Vcs-Git and Vcs-Browser URL
 
-  [ Martín Ferrari ]
+  [ Martina Ferrari ]
   * Upstream has communicated that they won't be making releases unless there
     is a breaking change. Making a new release out of a git snapshot.
   * Remove now unneeded patches (addressed upstream).
@@ -26,20 +170,20 @@ golang-ginkgo (1.2.0+git20160914.46c87bb-1) unstable; urgency=medium
     - Use golang-any.
     - Remove Built-Using.
 
- -- Martín Ferrari <tincho@debian.org>  Mon, 26 Sep 2016 15:44:25 +0000
+ -- Martina Ferrari <tina@debian.org>  Mon, 26 Sep 2016 15:44:25 +0000
 
 golang-ginkgo (1.2.0-3) unstable; urgency=medium
 
   * Reduce flakiness in timing-related test. Closes: #819214.
 
- -- Martín Ferrari <tincho@debian.org>  Sat, 02 Apr 2016 15:04:54 +0000
+ -- Martina Ferrari <tina@debian.org>  Sat, 02 Apr 2016 15:04:54 +0000
 
 golang-ginkgo (1.2.0-2) unstable; urgency=medium
 
   * Provide compatibility patch for arm64. Closes: #803099
   * Update Standards-Version with no changes.
 
- -- Martín Ferrari <tincho@debian.org>  Sun, 13 Mar 2016 15:08:00 +0000
+ -- Martina Ferrari <tina@debian.org>  Sun, 13 Mar 2016 15:08:00 +0000
 
 golang-ginkgo (1.2.0-1) unstable; urgency=medium
 
@@ -47,16 +191,16 @@ golang-ginkgo (1.2.0-1) unstable; urgency=medium
   * Migration to pkg-go team.
   * Added lintian override.
 
- -- Martín Ferrari <tincho@debian.org>  Tue, 07 Jul 2015 06:46:08 +0000
+ -- Martina Ferrari <tina@debian.org>  Tue, 07 Jul 2015 06:46:08 +0000
 
 golang-ginkgo (1.1.1-1) unstable; urgency=medium
 
   * New upstream release. (Closes: #784623)
 
- -- Martín Ferrari <tincho@debian.org>  Thu, 07 May 2015 19:10:28 +0000
+ -- Martina Ferrari <tina@debian.org>  Thu, 07 May 2015 19:10:28 +0000
 
 golang-ginkgo (1.1.0-1) unstable; urgency=medium
 
   * Initial release. (Closes: #778516)
 
- -- Martín Ferrari <tincho@debian.org>  Mon, 16 Feb 2015 06:55:36 +0000
+ -- Martina Ferrari <tina@debian.org>  Mon, 16 Feb 2015 06:55:36 +0000

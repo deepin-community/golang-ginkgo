@@ -17,21 +17,23 @@ import (
 var _ = Describe("JUnit Reporter", func() {
 	var (
 		outputFile string
-		reporter   Reporter
+		reporter   *reporters.JUnitReporter
 	)
+	testSuiteTime := 12456999 * time.Microsecond
+	reportedSuiteTime := 12.456
 
 	readOutputFile := func() reporters.JUnitTestSuite {
 		bytes, err := ioutil.ReadFile(outputFile)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).ToNot(HaveOccurred())
 		var suite reporters.JUnitTestSuite
 		err = xml.Unmarshal(bytes, &suite)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).ToNot(HaveOccurred())
 		return suite
 	}
 
 	BeforeEach(func() {
 		f, err := ioutil.TempFile("", "output")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).ToNot(HaveOccurred())
 		f.Close()
 		outputFile = f.Name()
 
@@ -47,7 +49,7 @@ var _ = Describe("JUnit Reporter", func() {
 		os.RemoveAll(outputFile)
 	})
 
-	Describe("a passing test", func() {
+	Describe("when configured with ReportPassed, and test has passed", func() {
 		BeforeEach(func() {
 			beforeSuite := &types.SetupSummary{
 				State: types.SpecStatePassed,
@@ -59,8 +61,12 @@ var _ = Describe("JUnit Reporter", func() {
 			}
 			reporter.AfterSuiteDidRun(afterSuite)
 
+			// Set the ReportPassed config flag, in order to show captured output when tests have passed.
+			reporter.ReporterConfig.ReportPassed = true
+
 			spec := &types.SpecSummary{
 				ComponentTexts: []string{"[Top Level]", "A", "B", "C"},
+				CapturedOutput: "Test scenario...",
 				State:          types.SpecStatePassed,
 				RunTime:        5 * time.Second,
 			}
@@ -70,21 +76,85 @@ var _ = Describe("JUnit Reporter", func() {
 			reporter.SpecSuiteDidEnd(&types.SuiteSummary{
 				NumberOfSpecsThatWillBeRun: 1,
 				NumberOfFailedSpecs:        0,
-				RunTime:                    10 * time.Second,
+				RunTime:                    testSuiteTime,
 			})
 		})
 
-		It("should record the test as passing", func() {
+		It("should record the test as passing, including detailed output", func() {
 			output := readOutputFile()
-			Ω(output.Tests).Should(Equal(1))
-			Ω(output.Failures).Should(Equal(0))
-			Ω(output.Time).Should(Equal(10.0))
-			Ω(output.TestCases).Should(HaveLen(1))
-			Ω(output.TestCases[0].Name).Should(Equal("A B C"))
-			Ω(output.TestCases[0].ClassName).Should(Equal("My test suite"))
-			Ω(output.TestCases[0].FailureMessage).Should(BeNil())
-			Ω(output.TestCases[0].Skipped).Should(BeNil())
-			Ω(output.TestCases[0].Time).Should(Equal(5.0))
+			Expect(output.Name).To(Equal("My test suite"))
+			Expect(output.Tests).To(Equal(1))
+			Expect(output.Failures).To(Equal(0))
+			Expect(output.Time).To(Equal(reportedSuiteTime))
+			Expect(output.Errors).To(Equal(0))
+			Expect(output.TestCases).To(HaveLen(1))
+			Expect(output.TestCases[0].Name).To(Equal("A B C"))
+			Expect(output.TestCases[0].ClassName).To(Equal("My test suite"))
+			Expect(output.TestCases[0].FailureMessage).To(BeNil())
+			Expect(output.TestCases[0].Skipped).To(BeNil())
+			Expect(output.TestCases[0].Time).To(Equal(5.0))
+			Expect(output.TestCases[0].SystemOut).To(ContainSubstring("Test scenario"))
+		})
+	})
+
+	Describe("when configured with ReportFile <file path>", func() {
+		BeforeEach(func() {
+			beforeSuite := &types.SetupSummary{
+				State: types.SpecStatePassed,
+			}
+			reporter.BeforeSuiteDidRun(beforeSuite)
+
+			afterSuite := &types.SetupSummary{
+				State: types.SpecStatePassed,
+			}
+			reporter.AfterSuiteDidRun(afterSuite)
+
+			reporter.SpecSuiteWillBegin(config.GinkgoConfigType{}, &types.SuiteSummary{
+				SuiteDescription:           "My test suite",
+				NumberOfSpecsThatWillBeRun: 1,
+			})
+
+			// Set the ReportFile config flag with a new directory and new file path to be created.
+			d, err := ioutil.TempDir("", "new-junit-dir")
+			Expect(err).ToNot(HaveOccurred())
+			f, err := ioutil.TempFile(d, "output")
+			Expect(err).ToNot(HaveOccurred())
+			f.Close()
+			outputFile = f.Name()
+			err = os.RemoveAll(d)
+			Expect(err).ToNot(HaveOccurred())
+			reporter.ReporterConfig.ReportFile = outputFile
+
+			spec := &types.SpecSummary{
+				ComponentTexts: []string{"[Top Level]", "A", "B", "C"},
+				CapturedOutput: "Test scenario...",
+				State:          types.SpecStatePassed,
+				RunTime:        5 * time.Second,
+			}
+			reporter.SpecWillRun(spec)
+			reporter.SpecDidComplete(spec)
+
+			reporter.SpecSuiteDidEnd(&types.SuiteSummary{
+				NumberOfSpecsThatWillBeRun: 1,
+				NumberOfFailedSpecs:        0,
+				RunTime:                    testSuiteTime,
+			})
+
+		})
+
+		It("should create the report (and parent directories) as specified by ReportFile path", func() {
+			output := readOutputFile()
+			Expect(output.Name).To(Equal("My test suite"))
+			Expect(output.Tests).To(Equal(1))
+			Expect(output.Failures).To(Equal(0))
+			Expect(output.Time).To(Equal(reportedSuiteTime))
+			Expect(output.Errors).To(Equal(0))
+			Expect(output.TestCases).To(HaveLen(1))
+			Expect(output.TestCases[0].Name).To(Equal("A B C"))
+			Expect(output.TestCases[0].ClassName).To(Equal("My test suite"))
+			Expect(output.TestCases[0].FailureMessage).To(BeNil())
+			Expect(output.TestCases[0].Skipped).To(BeNil())
+			Expect(output.TestCases[0].Time).To(Equal(5.0))
 		})
 	})
 
@@ -106,23 +176,25 @@ var _ = Describe("JUnit Reporter", func() {
 			reporter.SpecSuiteDidEnd(&types.SuiteSummary{
 				NumberOfSpecsThatWillBeRun: 1,
 				NumberOfFailedSpecs:        1,
-				RunTime:                    10 * time.Second,
+				RunTime:                    testSuiteTime,
 			})
 		})
 
 		It("should record the test as having failed", func() {
 			output := readOutputFile()
-			Ω(output.Tests).Should(Equal(1))
-			Ω(output.Failures).Should(Equal(1))
-			Ω(output.Time).Should(Equal(10.0))
-			Ω(output.TestCases[0].Name).Should(Equal("BeforeSuite"))
-			Ω(output.TestCases[0].Time).Should(Equal(3.0))
-			Ω(output.TestCases[0].ClassName).Should(Equal("My test suite"))
-			Ω(output.TestCases[0].FailureMessage.Type).Should(Equal("Failure"))
-			Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring("failed to setup"))
-			Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring(beforeSuite.Failure.ComponentCodeLocation.String()))
-			Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring(beforeSuite.Failure.Location.String()))
-			Ω(output.TestCases[0].Skipped).Should(BeNil())
+			Expect(output.Name).To(Equal("My test suite"))
+			Expect(output.Tests).To(Equal(1))
+			Expect(output.Failures).To(Equal(1))
+			Expect(output.Time).To(Equal(reportedSuiteTime))
+			Expect(output.Errors).To(Equal(0))
+			Expect(output.TestCases[0].Name).To(Equal("BeforeSuite"))
+			Expect(output.TestCases[0].Time).To(Equal(3.0))
+			Expect(output.TestCases[0].ClassName).To(Equal("My test suite"))
+			Expect(output.TestCases[0].FailureMessage.Type).To(Equal("Failure"))
+			Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring("failed to setup"))
+			Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring(beforeSuite.Failure.ComponentCodeLocation.String()))
+			Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring(beforeSuite.Failure.Location.String()))
+			Expect(output.TestCases[0].Skipped).To(BeNil())
 		})
 	})
 
@@ -144,33 +216,38 @@ var _ = Describe("JUnit Reporter", func() {
 			reporter.SpecSuiteDidEnd(&types.SuiteSummary{
 				NumberOfSpecsThatWillBeRun: 1,
 				NumberOfFailedSpecs:        1,
-				RunTime:                    10 * time.Second,
+				RunTime:                    testSuiteTime,
 			})
 		})
 
 		It("should record the test as having failed", func() {
 			output := readOutputFile()
-			Ω(output.Tests).Should(Equal(1))
-			Ω(output.Failures).Should(Equal(1))
-			Ω(output.Time).Should(Equal(10.0))
-			Ω(output.TestCases[0].Name).Should(Equal("AfterSuite"))
-			Ω(output.TestCases[0].Time).Should(Equal(3.0))
-			Ω(output.TestCases[0].ClassName).Should(Equal("My test suite"))
-			Ω(output.TestCases[0].FailureMessage.Type).Should(Equal("Failure"))
-			Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring("failed to setup"))
-			Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring(afterSuite.Failure.ComponentCodeLocation.String()))
-			Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring(afterSuite.Failure.Location.String()))
-			Ω(output.TestCases[0].Skipped).Should(BeNil())
+			Expect(output.Name).To(Equal("My test suite"))
+			Expect(output.Tests).To(Equal(1))
+			Expect(output.Failures).To(Equal(1))
+			Expect(output.Time).To(Equal(reportedSuiteTime))
+			Expect(output.Errors).To(Equal(0))
+			Expect(output.TestCases[0].Name).To(Equal("AfterSuite"))
+			Expect(output.TestCases[0].Time).To(Equal(3.0))
+			Expect(output.TestCases[0].ClassName).To(Equal("My test suite"))
+			Expect(output.TestCases[0].FailureMessage.Type).To(Equal("Failure"))
+			Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring("failed to setup"))
+			Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring(afterSuite.Failure.ComponentCodeLocation.String()))
+			Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring(afterSuite.Failure.Location.String()))
+			Expect(output.TestCases[0].Skipped).To(BeNil())
 		})
 	})
 
 	specStateCases := []struct {
 		state   types.SpecState
 		message string
+
+		// Only for SpecStatePanicked.
+		forwardedPanic string
 	}{
-		{types.SpecStateFailed, "Failure"},
-		{types.SpecStateTimedOut, "Timeout"},
-		{types.SpecStatePanicked, "Panic"},
+		{types.SpecStateFailed, "Failure", ""},
+		{types.SpecStateTimedOut, "Timeout", ""},
+		{types.SpecStatePanicked, "Panic", "artifical panic"},
 	}
 
 	for _, specStateCase := range specStateCases {
@@ -186,6 +263,7 @@ var _ = Describe("JUnit Reporter", func() {
 						ComponentCodeLocation: codelocation.New(0),
 						Location:              codelocation.New(2),
 						Message:               "I failed",
+						ForwardedPanic:        specStateCase.forwardedPanic,
 					},
 				}
 				reporter.SpecWillRun(spec)
@@ -194,22 +272,28 @@ var _ = Describe("JUnit Reporter", func() {
 				reporter.SpecSuiteDidEnd(&types.SuiteSummary{
 					NumberOfSpecsThatWillBeRun: 1,
 					NumberOfFailedSpecs:        1,
-					RunTime:                    10 * time.Second,
+					RunTime:                    testSuiteTime,
 				})
 			})
 
 			It("should record test as failing", func() {
 				output := readOutputFile()
-				Ω(output.Tests).Should(Equal(1))
-				Ω(output.Failures).Should(Equal(1))
-				Ω(output.Time).Should(Equal(10.0))
-				Ω(output.TestCases[0].Name).Should(Equal("A B C"))
-				Ω(output.TestCases[0].ClassName).Should(Equal("My test suite"))
-				Ω(output.TestCases[0].FailureMessage.Type).Should(Equal(specStateCase.message))
-				Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring("I failed"))
-				Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring(spec.Failure.ComponentCodeLocation.String()))
-				Ω(output.TestCases[0].FailureMessage.Message).Should(ContainSubstring(spec.Failure.Location.String()))
-				Ω(output.TestCases[0].Skipped).Should(BeNil())
+				Expect(output.Name).To(Equal("My test suite"))
+				Expect(output.Tests).To(Equal(1))
+				Expect(output.Failures).To(Equal(1))
+				Expect(output.Time).To(Equal(reportedSuiteTime))
+				Expect(output.Errors).To(Equal(0))
+				Expect(output.TestCases[0].Name).To(Equal("A B C"))
+				Expect(output.TestCases[0].ClassName).To(Equal("My test suite"))
+				Expect(output.TestCases[0].FailureMessage.Type).To(Equal(specStateCase.message))
+				Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring("I failed"))
+				Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring(spec.Failure.ComponentCodeLocation.String()))
+				Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring(spec.Failure.Location.String()))
+				Expect(output.TestCases[0].Skipped).To(BeNil())
+				if specStateCase.state == types.SpecStatePanicked {
+					Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring("\nPanic: " + specStateCase.forwardedPanic + "\n"))
+					Expect(output.TestCases[0].FailureMessage.Message).To(ContainSubstring("\nFull stack:\n" + spec.Failure.Location.FullStackTrace))
+				}
 			})
 		})
 	}
@@ -223,6 +307,9 @@ var _ = Describe("JUnit Reporter", func() {
 					ComponentTexts: []string{"[Top Level]", "A", "B", "C"},
 					State:          specStateCase,
 					RunTime:        5 * time.Second,
+					Failure: types.SpecFailure{
+						Message: "skipped reason",
+					},
 				}
 				reporter.SpecWillRun(spec)
 				reporter.SpecDidComplete(spec)
@@ -230,17 +317,18 @@ var _ = Describe("JUnit Reporter", func() {
 				reporter.SpecSuiteDidEnd(&types.SuiteSummary{
 					NumberOfSpecsThatWillBeRun: 1,
 					NumberOfFailedSpecs:        0,
-					RunTime:                    10 * time.Second,
+					RunTime:                    testSuiteTime,
 				})
 			})
 
 			It("should record test as failing", func() {
 				output := readOutputFile()
-				Ω(output.Tests).Should(Equal(1))
-				Ω(output.Failures).Should(Equal(0))
-				Ω(output.Time).Should(Equal(10.0))
-				Ω(output.TestCases[0].Name).Should(Equal("A B C"))
-				Ω(output.TestCases[0].Skipped).ShouldNot(BeNil())
+				Expect(output.Tests).To(Equal(1))
+				Expect(output.Failures).To(Equal(0))
+				Expect(output.Time).To(Equal(reportedSuiteTime))
+				Expect(output.Errors).To(Equal(0))
+				Expect(output.TestCases[0].Name).To(Equal("A B C"))
+				Expect(output.TestCases[0].Skipped.Message).To(ContainSubstring("skipped reason"))
 			})
 		})
 	}
